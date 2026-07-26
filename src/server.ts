@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import webhookRoutes from './routes/webhook';
+import webhookRoutes from './routes/webhook.js';
 
 dotenv.config();
 

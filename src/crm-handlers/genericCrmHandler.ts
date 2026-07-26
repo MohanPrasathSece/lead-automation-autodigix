@@ -1,27 +1,40 @@
 import axios from 'axios';
-import { LeadData } from '../services/crmRouter';
+import type { LeadData } from '../services/crmRouter.js';
 
 export const sendToGenericCrm = async (
   leadData: LeadData,
   crmUrl: string,
   crmToken: string
 ) => {
-  console.log(`[CRM Handler] Processing lead for ${leadData.Website}:`, leadData.Email);
-  
-  const [firstName, ...lastNames] = (leadData.Name || '').split(' ');
+  const website = leadData.Website || 'Unknown Website';
+  const email = leadData.Email || '';
+  const phone = leadData.Phone || '';
+  const country = leadData.Country || 'ch';
+
+  const [firstName, ...lastNames] = (leadData.Name || '').trim().split(' ');
   const lastName = lastNames.join(' ');
 
   const payload = {
-    country_name: leadData.Country || 'ch',
+    country_name: country,
     description: leadData.Message || leadData.Campaign || 'Lead from Google Sheets',
-    phone: leadData.Phone || '', 
-    email: leadData.Email || '',
+    phone: phone, 
+    email: email,
     first_name: firstName || '',
     last_name: lastName || '',
     custom_fields: {
       Source_ID: leadData.Source || 'Google Sheets',
     }
   };
+
+  const tokenSummary = crmToken ? `${crmToken.substring(0, 10)}... (${crmToken.length} chars)` : 'MISSING_TOKEN';
+
+  console.log(`\n------------------------------------------------------`);
+  console.log(`[CRM Request] Preparing transmission for "${website}"`);
+  console.log(`  -> Target URL:    ${crmUrl}`);
+  console.log(`  -> Token Used:    ${tokenSummary}`);
+  console.log(`  -> Lead Contact:  ${email} | Phone: ${phone} | Country: ${country}`);
+  console.log(`  -> Payload JSON:`, JSON.stringify(payload, null, 2));
+  console.log(`------------------------------------------------------`);
 
   try {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Bypass SSL for specific CRM APIs
@@ -36,11 +49,29 @@ export const sendToGenericCrm = async (
       }
     });
     
-    console.log(`[CRM Handler] Success for ${leadData.Website}. Status:`, response.status);
-    return { success: true, data: response.data };
+    console.log(`\n[CRM Accepted] Success for "${website}"!`);
+    console.log(`  -> HTTP Status:   ${response.status} ${response.statusText || ''}`);
+    console.log(`  -> Response Body:`, JSON.stringify(response.data, null, 2));
+    console.log(`------------------------------------------------------\n`);
+    
+    return { success: true, status: response.status, data: response.data };
 
   } catch (error: any) {
-    console.error(`[CRM Handler] Error sending lead for ${leadData.Website}:`, error.response?.data || error.message);
-    return { success: false, error: error.message };
+    const status = error.response?.status || 'N/A';
+    const errorData = error.response?.data || error.message;
+
+    console.error(`\n[CRM Rejected / Error] Transmission failed for "${website}"!`);
+    console.error(`  -> Target URL:    ${crmUrl}`);
+    console.error(`  -> HTTP Status:   ${status}`);
+    console.error(`  -> Error Detail:`, typeof errorData === 'object' ? JSON.stringify(errorData, null, 2) : errorData);
+    console.error(`  -> Exception Msg:`, error.message);
+    console.error(`------------------------------------------------------\n`);
+
+    return { 
+      success: false, 
+      status: status,
+      error: typeof errorData === 'object' ? JSON.stringify(errorData) : errorData,
+      exception: error.message 
+    };
   }
 };

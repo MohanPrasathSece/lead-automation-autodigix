@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { crmRouter } from '../services/crmRouter';
+import { crmRouter } from '../services/crmRouter.js';
 
 const router = Router();
 
