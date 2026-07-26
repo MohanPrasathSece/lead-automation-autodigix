@@ -15,6 +15,20 @@ app.use(express.json());
 // Routes
 app.use('/api/leads', webhookRoutes);
 
+// Root Route
+app.get('/', (req, res) => {
+  res.status(200).json({
+    service: 'AUTODIGIX Multi-CRM Lead Routing Engine',
+    status: 'Online',
+    version: '1.0.0',
+    endpoints: {
+      webhook: 'POST /api/leads',
+      health: 'GET /health'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Health Check
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
