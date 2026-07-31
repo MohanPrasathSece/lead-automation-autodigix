@@ -67,11 +67,52 @@
       100% { transform: translate(30px, 50px) scale(1.1); }
     }
 
-    .container {
+    .layout-wrapper {
+      display: flex;
+      gap: 2rem;
       width: 100%;
-      max-width: 600px;
+      max-width: 1200px;
+      margin: 0 auto;
       padding: 2rem;
       z-index: 1;
+      align-items: flex-start;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+      padding: 0;
+      flex: 1 1 400px;
+    }
+
+    .log-container {
+      width: 100%;
+      max-width: 600px;
+      flex: 1 1 400px;
+      display: none;
+    }
+
+    /* Custom Scrollbar for logs */
+    .log-list {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .log-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    .log-list::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+    .log-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
     }
 
     .card {
@@ -241,52 +282,63 @@
   <div class="bg-shape shape1"></div>
   <div class="bg-shape shape2"></div>
 
-  <div class="container">
-    <div class="card">
-      <div class="header">
-        <h1>AutoDigix Router</h1>
-        <p>Upload your Excel sheet to automatically route leads to their respective CRMs</p>
-      </div>
+  <div class="layout-wrapper">
+    <div class="container">
+      <div class="card">
+        <div class="header">
+          <h1>AutoDigix Router</h1>
+          <p>Upload your Excel sheet to automatically route leads to their respective CRMs</p>
+        </div>
 
-      <div class="dropzone" id="dropzone">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-        </svg>
-        <div class="dropzone-text">Click or drag & drop to upload</div>
-        <div class="dropzone-subtext">Supports .xlsx, .xls, .csv</div>
-        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv">
-      </div>
-
-      <div class="action-area" id="actionArea">
-        <div class="file-info">
-          <div>
-            <strong id="fileName">leads.xlsx</strong>
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" id="rowCount">0 rows found</div>
-          </div>
-          <svg style="width:24px;height:24px;color:var(--success)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        <div class="dropzone" id="dropzone">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
           </svg>
+          <div class="dropzone-text">Click or drag & drop to upload</div>
+          <div class="dropzone-subtext">Supports .xlsx, .xls, .csv</div>
+          <input type="file" id="fileInput" accept=".xlsx, .xls, .csv">
         </div>
-        <button class="btn" id="processBtn">Process & Route Leads</button>
-      </div>
 
-      <div class="progress-container" id="progressContainer">
-        <div style="margin-bottom: 0.5rem; font-weight: 500;" id="progressText">Processing leads...</div>
-        <div class="progress-bar-wrapper">
-          <div class="progress-bar" id="progressBar"></div>
-        </div>
-        <div class="stats">
-          <div class="stat-item stat-success">
-            <span>✓</span> <span id="successCount">0</span> Successful
+        <div class="action-area" id="actionArea">
+          <div class="file-info">
+            <div>
+              <strong id="fileName">leads.xlsx</strong>
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" id="rowCount">0 rows found</div>
+            </div>
+            <svg style="width:24px;height:24px;color:var(--success)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
           </div>
-          <div class="stat-item stat-error">
-            <span>✗</span> <span id="errorCount">0</span> Failed
-          </div>
+          <button class="btn" id="processBtn">Process & Route Leads</button>
         </div>
-        <div class="error-log" id="errorLog" style="margin-top: 1rem; max-height: 150px; overflow-y: auto; font-size: 0.8rem; color: var(--error); text-align: left; background: rgba(239, 68, 68, 0.1); border-radius: 8px; padding: 0.5rem; display: none;">
+
+        <div class="progress-container" id="progressContainer">
+          <div style="margin-bottom: 0.5rem; font-weight: 500;" id="progressText">Processing leads...</div>
+          <div class="progress-bar-wrapper">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+          <div class="stats">
+            <div class="stat-item stat-success">
+              <span>✓</span> <span id="successCount">0</span> Successful
+            </div>
+            <div class="stat-item stat-error">
+              <span>✗</span> <span id="errorCount">0</span> Failed
+            </div>
+          </div>
         </div>
       </div>
+    </div>
 
+    <div class="log-container" id="logContainer">
+      <div class="card" style="height: 100%; max-height: 600px; display: flex; flex-direction: column;">
+        <div class="header" style="margin-bottom: 1.5rem; text-align: left;">
+          <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Processing Logs</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Real-time lead routing status</p>
+        </div>
+        <div class="log-list" id="fullLog">
+          <!-- logs go here -->
+        </div>
+      </div>
     </div>
   </div>
 
@@ -302,17 +354,63 @@
     const progressText = document.getElementById('progressText');
     const successCountEl = document.getElementById('successCount');
     const errorCountEl = document.getElementById('errorCount');
-    const errorLog = document.getElementById('errorLog');
+    const logContainer = document.getElementById('logContainer');
+    const fullLog = document.getElementById('fullLog');
 
     let leadsData = [];
 
-    function logErrorToUI(rowNum, msg) {
-      errorLog.style.display = 'block';
-      const errLine = document.createElement('div');
-      errLine.textContent = `Row ${rowNum}: ${msg}`;
-      errLine.style.marginBottom = '0.25rem';
-      errorLog.appendChild(errLine);
-      errorLog.scrollTop = errorLog.scrollHeight;
+    function logToUI(rowNum, leadName, status, msg) {
+      const item = document.createElement('div');
+      item.style.padding = '0.75rem';
+      item.style.borderRadius = '8px';
+      item.style.fontSize = '0.9rem';
+      item.style.border = '1px solid var(--border)';
+      item.style.display = 'flex';
+      item.style.flexDirection = 'column';
+      item.style.gap = '0.35rem';
+
+      const header = document.createElement('div');
+      header.style.display = 'flex';
+      header.style.justifyContent = 'space-between';
+      header.style.alignItems = 'center';
+
+      const title = document.createElement('strong');
+      title.textContent = `Lead ${rowNum}: ${leadName}`;
+
+      const badge = document.createElement('span');
+      badge.style.padding = '0.2rem 0.5rem';
+      badge.style.borderRadius = '4px';
+      badge.style.fontSize = '0.75rem';
+      badge.style.fontWeight = '600';
+      
+      if (status === 'success') {
+        badge.textContent = 'Success';
+        badge.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+        badge.style.color = 'var(--success)';
+        item.style.backgroundColor = 'rgba(16, 185, 129, 0.05)';
+        item.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+      } else {
+        badge.textContent = 'Failed';
+        badge.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+        badge.style.color = 'var(--error)';
+        item.style.backgroundColor = 'rgba(239, 68, 68, 0.05)';
+        item.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+      }
+
+      header.appendChild(title);
+      header.appendChild(badge);
+      item.appendChild(header);
+
+      if (msg) {
+        const msgEl = document.createElement('div');
+        msgEl.textContent = msg;
+        msgEl.style.fontSize = '0.85rem';
+        msgEl.style.color = 'var(--text-muted)';
+        item.appendChild(msgEl);
+      }
+
+      fullLog.appendChild(item);
+      fullLog.scrollTop = fullLog.scrollHeight;
     }
 
     // Drag and drop events
@@ -380,8 +478,8 @@
       
       actionArea.style.display = 'none';
       progressContainer.style.display = 'block';
-      errorLog.style.display = 'none';
-      errorLog.innerHTML = '';
+      logContainer.style.display = 'block';
+      fullLog.innerHTML = '';
       
       let success = 0;
       let failed = 0;
@@ -389,10 +487,26 @@
 
       for (let i = 0; i < total; i++) {
         const lead = leadsData[i];
+        const leadName = lead.Name || lead.full_name || lead.Website || lead.form_name || 'Unknown';
         
         // Update progress UI
         progressText.textContent = `Processing lead ${i + 1} of ${total}...`;
         progressBar.style.width = `${((i) / total) * 100}%`;
+
+        let extractedWebsite = lead.Website;
+        if (!extractedWebsite && lead.form_name) {
+          extractedWebsite = String(lead.form_name).replace(/\b\d{2}-\d{2}-\d{4}\b/g, '').replace(/\bform\b/gi, '').trim();
+        }
+
+        if (!extractedWebsite) {
+          failed++;
+          logToUI(i + 1, leadName, 'error', 'Invalid Lead: Missing required field (Website or form_name)');
+          
+          successCountEl.textContent = success;
+          errorCountEl.textContent = failed;
+          await new Promise(r => setTimeout(r, 50));
+          continue;
+        }
 
         try {
           // Send to the existing webhook endpoint
@@ -406,6 +520,7 @@
           
           if (response.ok) {
             success++;
+            logToUI(i + 1, leadName, 'success', 'Lead routed successfully.');
           } else {
             failed++;
             let errMsg = response.statusText;
@@ -414,12 +529,12 @@
               errMsg = errData.error || errData.message || errMsg;
               if (errData.details && errData.details.error) errMsg += ` (${errData.details.error})`;
             } catch(e) {}
-            logErrorToUI(i + 1, errMsg);
+            logToUI(i + 1, leadName, 'error', errMsg);
           }
         } catch (error) {
           console.error('Error sending lead:', error);
           failed++;
-          logErrorToUI(i + 1, error.message || 'Network error');
+          logToUI(i + 1, leadName, 'error', error.message || 'Network error');
         }
 
         // Update stats
