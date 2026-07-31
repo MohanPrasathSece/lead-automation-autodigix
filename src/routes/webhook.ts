@@ -21,10 +21,13 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Missing required field: Website or form_name' });
     }
 
+    const rawPhone = rawData.Phone || rawData.phone || rawData.phone_number || rawData.phoneNumber || '';
+    const cleanPhone = rawPhone ? String(rawPhone).replace(/^p:/i, '') : '';
+
     const leadData = {
       Website: extractedWebsite,
       Name: rawData.Name || rawData.full_name || '',
-      Phone: rawData.Phone || (rawData.phone ? String(rawData.phone).replace(/^p:/i, '') : ''),
+      Phone: cleanPhone,
       Email: rawData.Email || rawData.email || '',
       Country: rawData.Country || rawData.country || '',
       Campaign: rawData.Campaign || rawData.campaign_name || '',
