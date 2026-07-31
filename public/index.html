@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoDigix Lead Uploader</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #0b0f19;
+      --card-bg: rgba(17, 25, 40, 0.75);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.125);
+      --success: #10b981;
+      --error: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Animated background gradients */
+    .bg-shape {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      z-index: 0;
+      animation: float 10s infinite ease-in-out alternate;
+    }
+    .shape1 {
+      width: 400px;
+      height: 400px;
+      background: rgba(99, 102, 241, 0.3);
+      top: -100px;
+      left: -100px;
+    }
+    .shape2 {
+      width: 500px;
+      height: 500px;
+      background: rgba(236, 72, 153, 0.2);
+      bottom: -150px;
+      right: -100px;
+      animation-delay: -5s;
+    }
+
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(30px, 50px) scale(1.1); }
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      padding: 2rem;
+      z-index: 1;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s ease;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(to right, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .dropzone {
+      border: 2px dashed rgba(99, 102, 241, 0.5);
+      border-radius: 16px;
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(99, 102, 241, 0.05);
+      position: relative;
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.1);
+      transform: scale(1.02);
+    }
+
+    .dropzone svg {
+      width: 48px;
+      height: 48px;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+
+    .dropzone-text {
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    .dropzone-subtext {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    input[type="file"] {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .action-area {
+      margin-top: 2rem;
+      display: none;
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .file-info {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid var(--border);
+    }
+
+    .btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.39);
+    }
+
+    .btn:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn:disabled {
+      background-color: #475569;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .progress-container {
+      display: none;
+      margin-top: 2rem;
+      text-align: left;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .progress-bar-wrapper {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .stat-success { color: var(--success); }
+    .stat-error { color: var(--error); }
+  </style>
+</head>
+<body>
+  <div class="bg-shape shape1"></div>
+  <div class="bg-shape shape2"></div>
+
+  <div class="container">
+    <div class="card">
+      <div class="header">
+        <h1>AutoDigix Router</h1>
+        <p>Upload your Excel sheet to automatically route leads to their respective CRMs</p>
+      </div>
+
+      <div class="dropzone" id="dropzone">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+        </svg>
+        <div class="dropzone-text">Click or drag & drop to upload</div>
+        <div class="dropzone-subtext">Supports .xlsx, .xls, .csv</div>
+        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv">
+      </div>
+
+      <div class="action-area" id="actionArea">
+        <div class="file-info">
+          <div>
+            <strong id="fileName">leads.xlsx</strong>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" id="rowCount">0 rows found</div>
+          </div>
+          <svg style="width:24px;height:24px;color:var(--success)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <button class="btn" id="processBtn">Process & Route Leads</button>
+      </div>
+
+      <div class="progress-container" id="progressContainer">
+        <div style="margin-bottom: 0.5rem; font-weight: 500;" id="progressText">Processing leads...</div>
+        <div class="progress-bar-wrapper">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="stats">
+          <div class="stat-item stat-success">
+            <span>✓</span> <span id="successCount">0</span> Successful
+          </div>
+          <div class="stat-item stat-error">
+            <span>✗</span> <span id="errorCount">0</span> Failed
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const dropzone = document.getElementById('dropzone');
+    const actionArea = document.getElementById('actionArea');
+    const fileName = document.getElementById('fileName');
+    const rowCount = document.getElementById('rowCount');
+    const processBtn = document.getElementById('processBtn');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const successCountEl = document.getElementById('successCount');
+    const errorCountEl = document.getElementById('errorCount');
+
+    let leadsData = [];
+
+    // Drag and drop events
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropzone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropzone.addEventListener(eventName, () => dropzone.classList.add('dragover'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropzone.addEventListener(eventName, () => dropzone.classList.remove('dragover'), false);
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files.length) {
+        fileInput.files = files;
+        handleFileSelect({ target: fileInput });
+      }
+    }, false);
+
+    fileInput.addEventListener('change', handleFileSelect);
+
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      fileName.textContent = file.name;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          leadsData = XLSX.utils.sheet_to_json(firstSheet);
+          
+          if (leadsData.length > 0) {
+            rowCount.textContent = `${leadsData.length} leads found`;
+            actionArea.style.display = 'block';
+            progressContainer.style.display = 'none';
+            processBtn.disabled = false;
+            processBtn.textContent = 'Process & Route Leads';
+          } else {
+            alert('No data found in the Excel sheet.');
+          }
+        } catch (error) {
+          console.error(error);
+          alert('Error parsing the file. Please ensure it is a valid Excel or CSV file.');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    processBtn.addEventListener('click', async () => {
+      if (leadsData.length === 0) return;
+      
+      actionArea.style.display = 'none';
+      progressContainer.style.display = 'block';
+      
+      let success = 0;
+      let failed = 0;
+      let total = leadsData.length;
+
+      for (let i = 0; i < total; i++) {
+        const lead = leadsData[i];
+        
+        // Update progress UI
+        progressText.textContent = `Processing lead ${i + 1} of ${total}...`;
+        progressBar.style.width = `${((i) / total) * 100}%`;
+
+        try {
+          // Send to the existing webhook endpoint
+          const response = await fetch('/api/leads', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(lead)
+          });
+          
+          if (response.ok) {
+            success++;
+          } else {
+            failed++;
+          }
+        } catch (error) {
+          console.error('Error sending lead:', error);
+          failed++;
+        }
+
+        // Update stats
+        successCountEl.textContent = success;
+        errorCountEl.textContent = failed;
+        
+        // Add a tiny delay to not overwhelm the browser and to show progress visually
+        await new Promise(r => setTimeout(r, 50));
+      }
+
+      progressBar.style.width = '100%';
+      progressText.textContent = 'Processing Complete!';
+      
+      // Allow uploading another file by showing the action area again if they want, 
+      // but typically we can just let them refresh or show a success state.
+      setTimeout(() => {
+        if(confirm('Processing completed! Do you want to upload another file?')) {
+          actionArea.style.display = 'none';
+          progressContainer.style.display = 'none';
+          fileInput.value = '';
+          leadsData = [];
+        }
+      }, 500);
+    });
+  </script>
+</body>
+</html>
