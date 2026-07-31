@@ -6,11 +6,32 @@ const router = Router();
 // POST /api/leads
 router.post('/', async (req, res) => {
   try {
-    const leadData = req.body;
+    const rawData = req.body;
 
-    if (!leadData || !leadData.Website) {
-      return res.status(400).json({ error: 'Missing required field: Website' });
+    // Map Facebook Lead format to our internal LeadData format if necessary
+    let extractedWebsite = rawData.Website;
+    if (!extractedWebsite && rawData.form_name) {
+      extractedWebsite = rawData.form_name
+        .replace(/\b\d{2}-\d{2}-\d{4}\b/g, '') // Remove date like 27-07-2026
+        .replace(/\bform\b/gi, '')             // Remove the word 'Form'
+        .trim();
     }
+
+    if (!extractedWebsite) {
+      return res.status(400).json({ error: 'Missing required field: Website or form_name' });
+    }
+
+    const leadData = {
+      Website: extractedWebsite,
+      Name: rawData.Name || rawData.full_name || '',
+      Phone: rawData.Phone || (rawData.phone ? rawData.phone.replace(/^p:/i, '') : ''),
+      Email: rawData.Email || rawData.email || '',
+      Country: rawData.Country || rawData.country || '',
+      Campaign: rawData.Campaign || rawData.campaign_name || '',
+      Source: rawData.Source || rawData.platform || '',
+      Message: rawData.Message || '',
+      ...rawData // Pass along any other fields
+    };
 
     console.log(`[Webhook] Received new lead for website: ${leadData.Website}`);
 

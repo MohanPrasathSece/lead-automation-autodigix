@@ -32,11 +32,15 @@ function onEdit(e) {
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const rowData = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
 
-  // Only proceed if this looks like a new entry (e.g., it has a Website)
+  // Only proceed if this looks like a valid entry (e.g., it has a Website or form_name)
   const websiteIndex = headers.indexOf('Website');
+  const formNameIndex = headers.indexOf('form_name');
 
-  if (websiteIndex === -1 || !rowData[websiteIndex]) {
-    // No Website specified, skip
+  const hasWebsite = websiteIndex !== -1 && rowData[websiteIndex];
+  const hasFormName = formNameIndex !== -1 && rowData[formNameIndex];
+
+  if (!hasWebsite && !hasFormName) {
+    // No Website or form_name specified, skip
     return;
   }
 
