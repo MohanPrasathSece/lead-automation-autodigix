@@ -283,6 +283,8 @@
             <span>✗</span> <span id="errorCount">0</span> Failed
           </div>
         </div>
+        <div class="error-log" id="errorLog" style="margin-top: 1rem; max-height: 150px; overflow-y: auto; font-size: 0.8rem; color: var(--error); text-align: left; background: rgba(239, 68, 68, 0.1); border-radius: 8px; padding: 0.5rem; display: none;">
+        </div>
       </div>
 
     </div>
@@ -300,8 +302,18 @@
     const progressText = document.getElementById('progressText');
     const successCountEl = document.getElementById('successCount');
     const errorCountEl = document.getElementById('errorCount');
+    const errorLog = document.getElementById('errorLog');
 
     let leadsData = [];
+
+    function logErrorToUI(rowNum, msg) {
+      errorLog.style.display = 'block';
+      const errLine = document.createElement('div');
+      errLine.textContent = `Row ${rowNum}: ${msg}`;
+      errLine.style.marginBottom = '0.25rem';
+      errorLog.appendChild(errLine);
+      errorLog.scrollTop = errorLog.scrollHeight;
+    }
 
     // Drag and drop events
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -368,6 +380,8 @@
       
       actionArea.style.display = 'none';
       progressContainer.style.display = 'block';
+      errorLog.style.display = 'none';
+      errorLog.innerHTML = '';
       
       let success = 0;
       let failed = 0;
@@ -394,10 +408,18 @@
             success++;
           } else {
             failed++;
+            let errMsg = response.statusText;
+            try {
+              const errData = await response.json();
+              errMsg = errData.error || errData.message || errMsg;
+              if (errData.details && errData.details.error) errMsg += ` (${errData.details.error})`;
+            } catch(e) {}
+            logErrorToUI(i + 1, errMsg);
           }
         } catch (error) {
           console.error('Error sending lead:', error);
           failed++;
+          logErrorToUI(i + 1, error.message || 'Network error');
         }
 
         // Update stats
